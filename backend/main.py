@@ -1,5 +1,5 @@
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 
 app = FastAPI(
     title="Power Bill Estimator API",
@@ -19,10 +19,17 @@ def home():
 @app.get("/calculate-units")
 def calculate_units(opening_reading: float, current_reading: float):
 
+    if opening_reading < 0 or current_reading < 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Meter readings cannot be negative"
+        )
+
     if current_reading < opening_reading:
-        return {
-            "error": "Current reading cannot be less than opening reading"
-        }
+        raise HTTPException(
+            status_code=400,
+            detail="Current reading cannot be less than opening reading"
+        )
 
     units_consumed = current_reading - opening_reading
 
@@ -31,4 +38,3 @@ def calculate_units(opening_reading: float, current_reading: float):
         "current_reading": current_reading,
         "units_consumed": units_consumed
     }
-
